@@ -3,36 +3,48 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+         #
+#    By: daniefe2 <daniefe2@student.42lausanne.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/02 10:53:48 by daniefe2          #+#    #+#              #
-#    Updated: 2025/04/03 11:13:08 by daniefe2         ###   ########.fr        #
+#    Updated: 2025/04/16 14:58:26 by daniefe2         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME	=	minitalk
+NAME		=	minitalk
 
-CC		=	gcc
-CFLAGS	=	-Wall -Wextra -Werror -g3 -I./headers
+CC			=	gcc
+CFLAGS		=	-Wall -Wextra -Werror -g3 -I./headers
 
-CLIENT	=	client
-SERVER	=	server
+SRC_DIR		=	sources
+FT_PRINTF_DIR =	lib/ft_printf
+FT_PRINTF	=	$(FT_PRINTF_DIR)/libftprintf.a
+
+CLIENT		=	client
+SERVER		=	server
+
+CLIENT_SRC	=	$(SRC_DIR)/client.c $(SRC_DIR)/utils.c
+SERVER_SRC	=	$(SRC_DIR)/server.c $(SRC_DIR)/utils.c
 
 all:		$(NAME)
 
-$(SERVER):	$(SERVER).c minitalk.h
-			@$(CC) $(CFLAGS) -o $(SERVER) $(SERVER).c
+$(FT_PRINTF):
+			@make -C $(FT_PRINTF_DIR)
 
-$(CLIENT):	$(CLIENT).c minitalk.h
-			@$(CC) $(CFLAGS) -o $(CLIENT) $(CLIENT).c
+$(CLIENT):	$(CLIENT_SRC) $(FT_PRINTF)
+			@$(CC) $(CFLAGS) -o $(CLIENT) $(CLIENT_SRC) -L$(FT_PRINTF_DIR) -lftprintf
+
+$(SERVER):	$(SERVER_SRC) $(FT_PRINTF)
+			@$(CC) $(CFLAGS) -o $(SERVER) $(SERVER_SRC) -L$(FT_PRINTF_DIR) -lftprintf
 
 $(NAME):	$(SERVER) $(CLIENT)
 
 clean:
-			@$(RM) $(CLIENT) $(SERVER)
+			@make -C $(FT_PRINTF_DIR) clean
+			@rm -f *.o
 
 fclean:		clean
+			@rm -f $(CLIENT) $(SERVER) $(FT_PRINTF)
 
 re:			fclean all
 
-.PHONY: 	all clean fclean re
+.PHONY: all clean fclean re
