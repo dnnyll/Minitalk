@@ -3,25 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: daniefe2 <daniefe2@student.42lausanne.c    +#+  +:+       +#+        */
+/*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:15:47 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/04/16 15:45:51 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/04/17 11:45:55 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-int g_ack_received = 0;
+int	g_ack_received = 0;
 
 // Signal handler for acknowledgment. 
 // Sets the global flag `g_ack_received` to 1 when SIGUSR1 is received.
 void	sig_handler(int sig)
 {
 	if (sig == SIGUSR1)
-		 g_ack_received = 1;
+		g_ack_received = 1;
 }
-// Function to convert string to integer (PID)
+
+// Converts string to integer (PID)
 int	ft_atoi(char *str)
 {
 	long	nb;
@@ -77,44 +78,41 @@ void	send_message(char *message, int pid)
 		i = 7;
 		while (i >= 0)
 		{
-			bit = (c >> i) & 1;
+			bit = (c >> i--) & 1;
 			send_bit(pid, bit);
-			i--;
 		}
 		bit_tracker++;
 	}
-	c = (unsigned char)'\0';
+	c = (unsigned char) '\0';
 	i = 7;
 	while (i >= 0)
 	{
-		bit = (c >> i) & 1;
+		bit = (c >> i--) & 1;
 		send_bit(pid, bit);
-		i--;
 	}
 }
 
-
 int	main(int argc, char **argv)
 {
-	struct sigaction sa;
-	int	pid;
-	char *message;
+	struct sigaction	sa;
+	int					pid;
+	char				*message;
 
 	if (argc != 3)
 	{
-		 ft_printf("Usage: %s <server_pid> <message>\n", argv[0]);
+		ft_printf("Usage: %s <server_pid> <message>\n", argv[0]);
 		return (1);
 	}
+	sa = (struct sigaction){0};
 	sa.sa_handler = sig_handler;
 	sa.sa_flags = SA_RESTART;
 	sigaction(SIGUSR1, &sa, NULL);
 	pid = ft_atoi(argv[1]);
 	message = argv[2];
-	ft_printf("pid = %d\n", pid);
-	ft_printf("message: %s\n", message);
 	send_message(message, pid);
 	while (!g_ack_received)
 		pause();
-	ft_printf("Acknowledgment received. Message sent successfully.\n");
+	ft_printf("Acknowledgment received.\n");
+	ft_printf("Your message has been successfully sent to pid : %d\n.", pid);
 	return (0);
 }
