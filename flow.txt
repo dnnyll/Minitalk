@@ -1,0 +1,99 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    flow.txt                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/04/19 13:31:40 by daniefe2          #+#    #+#              #
+#    Updated: 2025/04/19 13:32:05 by daniefe2         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                           MINITALK CLIENT FLOW                             */
+/*                                                                            */
+/*                          ┌────────────────────────┐                        */
+/*                          │      client.c          │                        */
+/*                          └────────────────────────┘                        */
+/*                                                                            */
+/* 1. ARGUMENT PARSING AND SETUP                                              */
+/* -------------------------------------------------------------------------- */
+/* • main(int argc, char **argv)                                              */
+/*    - Verifies exactly 2 arguments are passed:                              */
+/*         argv[1] = server PID (as string)                                   */
+/*         argv[2] = message to send                                          */
+/*    - If not, prints usage with ft_printf and exits.                        */
+/*                                                                            */
+/* • signal(SIGUSR1, sig_handler)                                             */
+/*    - Sets up a signal handler to catch SIGUSR1.                            */
+/*    - Handler: sig_handler(int sig)                                         */
+/*        > When server sends SIGUSR1, the handler sets                       */
+/*          the global variable:                                              */
+/*              volatile sig_atomic_t server_confirm_reception = 1;          */
+/*        > Also prints "message received"                                    */
+/*                                                                            */
+/* • ft_atoi(argv[1])                                                         */
+/*    - Converts server PID from string to integer.                           */
+/*    - If PID is outside a valid range (2 - 4194304), exits.                 */
+/*                                                                            */
+/* 2. SENDING THE MESSAGE BIT BY BIT                                          */
+/* -------------------------------------------------------------------------- */
+/* • send_message(char *message, pid_t pid)                                   */
+/*    - Iterates through each character in message.                           */
+/*    - For each character:                                                   */
+/*         > Converts to binary (8 bits)                                      */
+/*         > Sends each bit to server via send_bit(pid, bit)                 */
+/*                                                                            */
+/*    - After all characters are sent, sends '\0' (null character)           */
+/*      to signal the end of message.                                         */
+/*                                                                            */
+/* • send_bit(pid_t pid, int bit)                                             */
+/*    - Uses kill() to send a signal to the server:                           */
+/*         > SIGUSR1 if bit == 0                                              */
+/*         > SIGUSR2 if bit == 1                                              */
+/*    - If kill() fails, prints error and exits.                              */
+/*    - Calls usleep(200) to give the server enough time to handle each bit. */
+/*                                                                            */
+/*      Example: Sending 'A' = 0b01000001                                     */
+/*         - Sends SIGUSR1, SIGUSR2, SIGUSR1, ... for each bit.              */
+/*                                                                            */
+/* 3. WAITING FOR SERVER CONFIRMATION                                         */
+/* -------------------------------------------------------------------------- */
+/* • After send_message() completes, the client does:                         */
+/*                                                                            */
+/*      while (!server_confirm_reception)                                     */
+/*          pause();                                                          */
+/*                                                                            */
+/*    - pause() suspends execution until any signal is received.             */
+/*    - Only SIGUSR1 from the server will trigger sig_handler,               */
+/*      which sets server_confirm_reception = 1.                              */
+/*                                                                            */
+/* 4. CLEAN EXIT                                                              */
+/* -------------------------------------------------------------------------- */
+/* • Once the signal handler sets server_confirm_reception to 1:             */
+/*      - Client prints:                                                      */
+/*          > "Acknowledgment received."                                      */
+/*          > "Message sent successfully to pid: ..."                         */
+/*      - Then exits.                                                         */
+/*                                                                            */
+/* 5. SUMMARY OF INTERPROCESS COMMUNICATION                                   */
+/* -------------------------------------------------------------------------- */
+/* • One character = 8 signals                                                */
+/* • One signal = one bit                                                     */
+/*      SIGUSR1 = bit 0                                                       */
+/*      SIGUSR2 = bit 1                                                       */
+/*                                                                            */
+/* • After sending all characters, client sends '\0' to indicate EOF.        */
+/* • Server responds with SIGUSR1 after full message is received.            */
+/* • Client waits (pause) until SIGUSR1 sets confirmation flag.              */
+/*                                                                            */
+/* 6. CRITICAL FUNCTIONS IN THIS FLOW                                         */
+/* -------------------------------------------------------------------------- */
+/*    - sig_handler       => handles ACK from server                          */
+/*    - send_bit          => sends each bit with kill()                       */
+/*    - send_message      => loops through all chars and bits                 */
+/*    - main              => glues everything together                        */
+/*                                                                            */
+/* ************************************************************************** */
