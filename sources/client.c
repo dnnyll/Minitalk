@@ -6,13 +6,13 @@
 /*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:15:47 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/04/19 11:31:32 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/04/21 08:57:30 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-volatile sig_atomic_t	server_confirm_reception = 0;
+volatile sig_atomic_t	g_server_confirm_reception = 0;
 
 // Signal handler for acknowledgment from the server.
 // Sets a global flag when SIGUSR1 is received to indicate message was received.
@@ -21,7 +21,7 @@ void	sig_handler(int sig)
 	if (sig == SIGUSR1)
 	{
 		ft_printf("message received\n");
-		server_confirm_reception = 1;
+		g_server_confirm_reception = 1;
 	}
 }
 
@@ -119,7 +119,7 @@ int	main(int argc, char **argv)
 			return (ft_printf("The PID is invalid. \n"), 1);
 		message = argv[2];
 		send_message(message, pid);
-		while (!server_confirm_reception)
+		while (!g_server_confirm_reception)
 			pause();
 		ft_printf("Acknowledgment received.\n");
 		ft_printf("Message sent successfully to pid : %d\n.", pid);

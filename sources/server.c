@@ -6,7 +6,7 @@
 /*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:13:25 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/04/19 11:13:24 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/04/21 08:58:33 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,12 +68,10 @@ t_node	*store_char_in_buffer(t_node *head, unsigned char c)
 
 /*
 info is a pointer to a siginfo_t struct. 
-It's filled in by the kernel automatically whenever the signal handler is triggered with SA_SIGINFO,
-and it contains detailed information about the signal — including who sent it (si_pid = process that sent the signal).
-
+It's filled in by the kernel automatically whenever the signal handler is 
+triggered with SA_SIGINFO,and it contains detailed information about the signal 
+— including who sent it (si_pid = process that sent the signal).
 */
-
-
 // Signal handler to reconstruct characters from bits received via signals.
 // Collects 8 bits into a character and adds it to the buffer.
 // Once a full character is received, it’s passed to `add_char_to_buffer`.
@@ -90,12 +88,11 @@ void	bit_to_char_handler(int signum, siginfo_t *info, void *context)
 	bit_tracker++;
 	if (bit_tracker == 8)
 	{
-	add_char_to_buffer(c, client_pid);
+		add_char_to_buffer(c, client_pid);
 		bit_tracker = 0;
 		c = 0;
 	}
 }
-
 
 /*
  struct sigaction {
@@ -110,6 +107,14 @@ void	bit_to_char_handler(int signum, siginfo_t *info, void *context)
 // Prints server PID, sets up signal handlers
 // and waits indefinitely for signals.
 // Handles SIGUSR1 and SIGUSR2 using `sigaction`.
+//
+// sa.sa_flags = SA_SIGINFO; // allows you to use a three argument sigaction
+// function.
+// 
+// sigaction is used to define how the program should behave when it 
+// receives a specific signal (like SIGUSR1 or SIGUSR2).
+//
+// pause(); // Just go to sleep and do nothing until a signal is received.
 int	main(void)
 {
 	struct sigaction	sa;
@@ -119,10 +124,9 @@ int	main(void)
 	ft_printf("Hello and welcome to Minitalk!\n");
 	ft_printf("The server is up and running.\n");
 	ft_printf("Please use the following PID: %d\n", server_pid);
-	sa.sa_flags = SA_SIGINFO; // allows you to use a three argument sigaction function
+	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = bit_to_char_handler;
 	sigemptyset(&sa.sa_mask);
-	// sigaction is used to define how the program should behave when it receives a specific signal (like SIGUSR1 or SIGUSR2).
 	if (sigaction(SIGUSR1, &sa, NULL) == -1)
 	{
 		perror("sigaction SIGUSR1");
@@ -134,6 +138,6 @@ int	main(void)
 		exit(EXIT_FAILURE);
 	}
 	while (1)
-		pause(); // Just go to sleep and do nothing until a signal is received.
+		pause();
 	return (0);
 }
