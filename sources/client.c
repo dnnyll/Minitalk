@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
+/*   By: daniefe2 <daniefe2@student.42lausanne.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:15:47 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/04/21 08:57:30 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/04/23 13:13:36 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,30 +71,29 @@ void	send_bit(pid_t pid, int bit)
 // Ends the message with a null character ('\0').
 void	send_message(char *message, pid_t pid)
 {
-	int				bit_tracker;
-	int				bit;
 	int				i;
 	unsigned char	c;
 
-	bit_tracker = 0;
-	while (message[bit_tracker] != '\0')
+	while (*message)
 	{
-		c = message[bit_tracker];
+		c = *message;
+		ft_printf("Sending char: '%c' (ASCII: %d) -> ", (c >= 32 && c <= 126) ? c : '.', c);
 		i = 7;
 		while (i >= 0)
 		{
-			bit = (c >> i--) & 1;
+			int bit = (c >> i) & 1;
+			ft_printf("%d", bit);
 			send_bit(pid, bit);
+			i--;
 		}
-		bit_tracker++;
+		ft_printf("\n");
+		message++;
 	}
-	c = (unsigned char) '\0';
-	i = 7;
-	while (i >= 0)
-	{
-		bit = (c >> i--) & 1;
-		send_bit(pid, bit);
-	}
+	// End of message — send 8 zero bits
+	ft_printf("Sending null terminator: 00000000\n");
+	i = 8;
+	while (i--)
+		send_bit(pid, 0);
 }
 
 // Parses arguments, sets up signal handler, validates PID,

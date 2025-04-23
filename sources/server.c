@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
+/*   By: daniefe2 <daniefe2@student.42lausanne.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:13:25 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/04/21 08:58:33 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/04/23 13:14:18 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,20 +77,29 @@ triggered with SA_SIGINFO,and it contains detailed information about the signal
 // Once a full character is received, it’s passed to `add_char_to_buffer`.
 void	bit_to_char_handler(int signum, siginfo_t *info, void *context)
 {
-	static int				bit_tracker = 0;
-	static unsigned char	c = 0;
-	pid_t					client_pid;
+	static unsigned char	current_char = 0;
+	static int				bit_index = 0;
+	int						bit;
 
 	(void)context;
-	client_pid = info->si_pid;
-	if (signum == SIGUSR2)
-		c |= (1 << (7 - bit_tracker));
-	bit_tracker++;
-	if (bit_tracker == 8)
+	if (signum == SIGUSR1)
+		bit = 1;
+	else if (signum == SIGUSR2)
+		bit = 0;
+	else
+		return;
+	current_char |= (bit << (7 - bit_index));
+	ft_printf("bit %d: received %d -> c: %08b (%c)\n", bit_index, bit, current_char,
+		(current_char >= 32 && current_char <= 126) ? current_char : '.');
+	bit_index++;
+	if (bit_index == 8)
 	{
-		add_char_to_buffer(c, client_pid);
-		bit_tracker = 0;
-		c = 0;
+		add_char_to_buffer(current_char, info->si_pid);
+		bit_index = 0;
+		current_char = 0;
+	//	Send acknowledgment signal back to client
+		if (kill(info->si_pid, SIGUSR1) == -1)
+			ft_printf("Failed to send acknowledgment.\n");
 	}
 }
 
