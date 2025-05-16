@@ -6,7 +6,7 @@
 #    By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: Invalid date        by                   #+#    #+#              #
-#    Updated: 2025/05/15 23:00:09 by daniefe2         ###   ########.fr        #
+#    Updated: 2025/05/16 07:59:49 by daniefe2         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@
 /*                                                                            */
 /* • signal(SIGUSR1, handle_read_receipt)                                     */
 /* • signal(SIGUSR2, handle_read_receipt)                                     */
-/*    - Sets up signal handlers to print feedback for each bit received.     */
+/*    - Sets up signal handlers to print feedback for each bit received.      */
 /*    - When SIGUSR1 or SIGUSR2 is received, a confirmation is printed:       */
 /*         > "Received bit 1" or "Received bit 0"                             */
 /*                                                                            */
@@ -38,18 +38,18 @@
 /* 2. SENDING THE MESSAGE BIT BY BIT                                          */
 /* -------------------------------------------------------------------------- */
 /* • send_signal(int pid, unsigned char character)                            */
-/*    - Loops over the 8 bits of the character, from MSB to LSB.             */
+/*    - Loops over the 8 bits of the character, from MSB to LSB.              */
 /*    - At each iteration:                                                    */
 /*         > Right-shifts character by i bits                                 */
 /*         > If resulting bit is even → send SIGUSR2                          */
 /*         > If resulting bit is odd  → send SIGUSR1                          */
-/*         > After each signal, pauses briefly with usleep(420)              */
+/*         > After each signal, pauses briefly with usleep(420)               */
 /*    - Repeats until all 8 bits are sent.                                    */
 /*                                                                            */
 /* • main(...) (continued)                                                    */
 /*    - Iterates over each character in message string                        */
 /*         > Calls send_signal(pid, message[i])                               */
-/*    - Sends an extra NULL character ('\0') at the end to signal EOF.       */
+/*    - Sends an extra NULL character ('\0') at the end to signal EOF.        */
 /*                                                                            */
 /*                          ┌────────────────────────┐                        */
 /*                          │        server.c        │                        */
@@ -58,7 +58,7 @@
 /* 3. SERVER SETUP                                                            */
 /* -------------------------------------------------------------------------- */
 /* • main(void)                                                               */
-/*    - Sets up struct sigaction with SA_SIGINFO flag                        */
+/*    - Sets up struct sigaction with SA_SIGINFO flag                         */
 /*    - Assigns handle_signal as the callback function                        */
 /*    - Registers SIGUSR1 and SIGUSR2 with sigaction                          */
 /*    - Prints server PID using ft_printf                                     */
@@ -66,24 +66,24 @@
 /*                                                                            */
 /* 4. RECEIVING AND REBUILDING CHARACTERS                                     */
 /* -------------------------------------------------------------------------- */
-/* • handle_signal(int signal, siginfo_t *info, void *context)               */
+/* • handle_signal(int signal, siginfo_t *info, void *context)                */
 /*    - Reconstructs characters bit by bit using static variables:            */
-/*         > current_char: stores the character being rebuilt                */
-/*         > bit_index:    tracks how many bits have been received           */
+/*         > current_char: stores the character being rebuilt                 */
+/*         > bit_index:    tracks how many bits have been received            */
 /*                                                                            */
 /*    - When a signal arrives:                                                */
 /*         > Adds 1 to current_char if signal is SIGUSR1                      */
-/*         > Leaves current_char unchanged if SIGUSR2                        */
+/*         > Leaves current_char unchanged if SIGUSR2                         */
 /*         > Increments bit_index                                             */
 /*         > If bit_index == 8:                                               */
 /*              - If current_char == '\0' → end of transmission               */
 /*                  > Prints newline                                          */
 /*              - Else                                                        */
-/*                  > Prints received character via ft_printf                */
-/*              - Resets bit_index and current_char                          */
-/*         > If not 8 yet, shifts current_char left by 1 bit                 */
+/*                  > Prints received character via ft_printf                 */
+/*              - Resets bit_index and current_char                           */
+/*         > If not 8 yet, shifts current_char left by 1 bit                  */
 /*                                                                            */
-/*    - Sends acknowledgment back to client:                                 */
+/*    - Sends acknowledgment back to client:                                  */
 /*         > Sends SIGUSR1 if received SIGUSR1                                */
 /*         > Sends SIGUSR2 if received SIGUSR2                                */
 /*                                                                            */
@@ -103,21 +103,119 @@
 /* -------------------------------------------------------------------------- */
 /* CLIENT SIDE:                                                               */
 /*    - Parses PID and message                                                */
-/*    - Converts each char to bits, sends one by one using kill()            */
+/*    - Converts each char to bits, sends one by one using kill()             */
 /*    - Waits briefly between signals                                         */
-/*    - Sends '\0' as end-of-transmission signal                             */
+/*    - Sends '\0' as end-of-transmission signal                              */
 /*                                                                            */
 /* SERVER SIDE:                                                               */
-/*    - Waits for signals via pause()                                        */
-/*    - Receives bits, reconstructs character                                */
-/*    - Once 8 bits are received:                                            */
-/*         > Prints character or newline                                     */
-/*    - Sends acknowledgment signal back after each bit                      */
+/*    - Waits for signals via pause()                                         */
+/*    - Receives bits, reconstructs character                                 */
+/*    - Once 8 bits are received:                                             */
+/*         > Prints character or newline                                      */
+/*    - Sends acknowledgment signal back after each bit                       */
 /*                                                                            */
 /* 7. DEBUGGING HELPERS                                                       */
 /* -------------------------------------------------------------------------- */
-/* • handle_read_receipt prints when each bit is confirmed                   */
-/*    > "Received bit 1" or "Received bit 0"                                 */
-/*    > Helps track message progress                                         */
+/* • handle_read_receipt prints when each bit is confirmed                    */
+/*    > "Received bit 1" or "Received bit 0"                                  */
+/*    > Helps track message progress                                          */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                            MINITALK EXECUTION FLOW                         */
+/* ************************************************************************** */
+
+/*                             1. START SERVER                                */
+
+/* ┌──────────────────────────── SERVER ─────────────────────────────┐ */
+/* │                                                                  │ */
+/* │    main()                                                        │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  ┌──────────────────────────────┐                                │ */
+/* │  │ sigaction(SIGUSR1, sa, NULL)│                                │ */
+/* │  │ sigaction(SIGUSR2, sa, NULL)│                                │ */
+/* │  └──────────────────────────────┘                                │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  print server PID                                               │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  while (1) → pause()                                             │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  ┌──────────────────────────────────────────────────────────┐    │ */
+/* │  │  handle_signal(int sig, siginfo_t *info, void *ucontext) │    │ */
+/* │  └──────────────────────────────────────────────────────────┘    │ */
+/* │      │                                                           │ */
+/* │  collect bits → reconstruct character                            │ */
+/* │      │                                                           │ */
+/* │  print character or newline                                      │ */
+/* │      │                                                           │ */
+/* │  ┌──────────────────────────────────────────────┐                │ */
+/* │  │ send ACK to client via kill(info->si_pid, SIGUSR1/2) │        │ */
+/* │  └──────────────────────────────────────────────┘                │ */
+/* └──────────────────────────────────────────────────────────────────┘ */
+
+
+/*                             2. START CLIENT                                */
+
+/* ┌──────────────────────────── CLIENT ─────────────────────────────┐ */
+/* │                                                                  │ */
+/* │    main(int argc, char **argv)                                   │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  signal(SIGUSR1, handle_read_receipt)                            │ */
+/* │  signal(SIGUSR2, handle_read_receipt)                            │ */
+/* │      │                                                           │ */
+/* │  extract PID and message from argv                               │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  loop through characters in message                              │ */
+/* │      │                                                           │ */
+/* │      ▼                                                           │ */
+/* │  ┌───────────────────────────────┐                               │ */
+/* │  │ send_signal(server_pid, char) │                               │ */
+/* │  └───────────────────────────────┘                               │ */
+/* │            │                                                      │ */
+/* │    for each bit in char:                                          │ */
+/* │      ├─► kill(server_pid, SIGUSR1)  (if bit is 1)                 │ */
+/* │      └─► kill(server_pid, SIGUSR2)  (if bit is 0)                 │ */
+/* │      wait for ACK signal (pause / sigsuspend)                    │ */
+/* └──────────────────────────────────────────────────────────────────┘ */
+
+
+/* ┌──────────────────── ACKNOWLEDGMENT FLOW ─────────────────────┐ */
+/* │                                                              │ */
+/* │  CLIENT sends bit ──► SERVER receives signal                  │ */
+/* │                          │                                    │ */
+/* │                    build character bit by bit                │ */
+/* │                          │                                    │ */
+/* │         once 8 bits → print char, send SIGUSR1 or SIGUSR2     │ */
+/* │                          ▼                                    │ */
+/* │               CLIENT receives ACK → continue sending          │ */
+/* └──────────────────────────────────────────────────────────────┘ */
+
+/* ************************************************************************** */
+
+
+
+/* ************************************************************************** */
+/*                                ACK Flow SUMMARY                            */
+/*                                                                            */
+/*	[ CLIENT ]                          [ SERVER ]                            */
+/*		│                                    │                                */
+/*		│ kill(server_pid, SIGUSR1/2) ──────►│  // send one bit               */
+/*		│                                    │                                */
+/*		│                           handle_signal() receives                  */
+/*		│                                    │                                */
+/*		│                       ┌────────────┘                                */
+/*		│                       │ builds char from bits                       */
+/*		│                       │                                             */
+/*		│ kill(client_pid, SIGUSR1/2) ◄──────┘  // ACK                        */
+/*		│◄──────── signal received (ACK)                                      */
+/*		│                                                                     */
+/*		│ now continue with next bit                                          */
 /*                                                                            */
 /* ************************************************************************** */
