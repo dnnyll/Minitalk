@@ -6,7 +6,7 @@
 /*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:15:47 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/05/16 08:22:37 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/05/16 09:01:09 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,6 @@ void	handle_read_receipt(int signal)
 	}
 }
 
-
-
 int	ft_atoi(const char *str)
 {
 	int		i;
@@ -80,6 +78,11 @@ int	ft_atoi(const char *str)
 	result *= negative;
 	return (result);
 }
+// The client sends a message to the server, bit by bit, using signals.
+// Each bit is sent as SIGUSR1 (1) or SIGUSR2 (0) to the server's PID.
+// The server acknowledges each bit with a signal back to the client.
+// The client waits for these acknowledgments to avoid sending too fast.
+// A null character '\0' is sent at the end to signal transmission is complete.
 
 int	main(int argc, char *argv[])
 {

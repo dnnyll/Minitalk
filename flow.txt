@@ -6,7 +6,7 @@
 #    By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: Invalid date        by                   #+#    #+#              #
-#    Updated: 2025/05/16 07:59:49 by daniefe2         ###   ########.fr        #
+#    Updated: 2025/05/16 08:59:20 by daniefe2         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -219,3 +219,28 @@
 /*		│ now continue with next bit                                          */
 /*                                                                            */
 /* ************************************************************************** */
+
+Overall signal flow
+Client                           Server
+  |                                 |
+  |--[ send bit: SIGUSR1 or 2 ]-->  |   ← bit 1 or 0
+  |                                 |
+  |                          [ handle_signal() ]
+  |                                 |
+  |--[ rebuild char bit-by-bit ]    |
+  |                                 |
+  |<--[ send ACK: SIGUSR1/2 ]------ |
+  |                                 |
+  |--[ receive ACK ]                |
+  |--[ send next bit ]------------> |
+  |                                 |
+           ... (8 times per char)   |
+  |                                 |
+  |--[ send '\0' as last char ]-->  |
+  |                                 |
+  |                         [ detects end of message ]
+  |                         [ prints completed message ]
+  |                                 |
+  |<--[ send final ACK ]----------- |
+  |                                 |
+  |--[ print: "Total chars received: N" ] (optional)
