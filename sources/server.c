@@ -6,11 +6,11 @@
 /*   By: daniefe2 <daniefe2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 11:13:25 by daniefe2          #+#    #+#             */
-/*   Updated: 2025/05/08 19:39:05 by daniefe2         ###   ########.fr       */
+/*   Updated: 2025/05/15 22:47:42 by daniefe2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+// #include "minitalk.h"
 
 // // Sends an acknowledgment signal (SIGUSR1) to the client to confirm reception.
 // // Called after the full message has been received (null character).
@@ -194,91 +194,146 @@ The siginfo_t argument to a SA_SIGINFO handler
 
 
 
-void handler(int signum, siginfo_t *info, void *context)
+// void handler(int signum, siginfo_t *info, void *context)
+// {
+// 	// sa.siginfo	si_pid;
+//     static unsigned char current_char = 0;
+//     static int bit_pos = 7;
+//     static char message[50000];  // A buffer to store the incoming message
+//     static int msg_index = 0;   // Index for the message buffer
+//     (void)context;  // Unused
+
+//     // Print debug information for incoming signals
+//     if (signum == SIGUSR1)
+//     {
+//         // Bit 0 (SIGUSR1)
+//         // ft_printf("Received SIGUSR1 (bit 0)\n");
+//         current_char &= ~(1 << bit_pos);  // Clear the bit at bit_pos
+// 		// store_char(current_char);
+//     }
+//     else if (signum == SIGUSR2)
+//     {
+//         // Bit 1 (SIGUSR2)
+//         // ft_printf("Received SIGUSR2 (bit 1)\n");
+//         current_char |= (1 << bit_pos);  // Set the bit at bit_pos
+//     }
+
+//     // Move to the next bit position
+//     bit_pos--;
+
+//     // If all bits of the character have been received
+//     if (bit_pos < 0)
+//     {
+//         // Check for null character to mark end of the message
+//         if (current_char == '\0')
+//         {
+//             // Print the full message and reset
+//             // ft_printf("Message received: %s\n", message);
+//             write(1, message, msg_index);  // Print the message
+//             write(1, "\n", 1);  // New line after the message
+
+//             // Reset the message buffer and index for the next message
+//             msg_index = 0;
+//             message[0] = '\0';
+//         }
+//         else
+//         {
+//             // Store the received character in the message buffer
+//             message[msg_index] = current_char;
+//             msg_index++;
+
+//             // Ensure we don't go beyond the buffer size
+//             if (msg_index >= 50000 - 1)
+//             {
+//                 ft_printf("Message buffer full!\n");
+//                 msg_index = 0;  // Reset buffer index to avoid overflow
+//             }
+//         }
+
+//         // Reset for the next character
+//         bit_pos = 7;
+//         current_char = 0;
+//     }
+
+//     // Send acknowledgment back to the client (SIGUSR1)
+//     kill(info->si_pid, SIGUSR1);
+// }
+
+
+// int main(void)
+// {
+// 	struct sigaction sa;
+// 	sa.sa_flags = SA_SIGINFO;
+// 	sa.sa_sigaction = handler;
+// 	pid_t	pid_server = getpid();
+// 	sigemptyset(&sa.sa_mask);
+
+// 	// Register SIGUSR1 and SIGUSR2 signals for receiving data
+// 	if (sigaction(SIGUSR1, &sa, NULL) == -1 || sigaction(SIGUSR2, &sa, NULL) == -1)
+// 	{
+// 		perror("sigaction");
+// 		return 1;
+// 	}
+
+// 	// Print the server PID for the client to know where to send the signals
+// 	ft_printf("Server PID: %d\n", pid_server);
+
+// 	// The server will keep running to receive signals
+// 	while (1)
+// 		pause();  // Wait for signals
+// }
+
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lgaudin <lgaudin@student.42malaga.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/09 15:02:13 by lgaudin           #+#    #+#             */
+/*   Updated: 2023/06/10 14:30:45 by lgaudin          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minitalk.h"
+
+void	handle_signal(int signal, siginfo_t *info, void *context)
 {
-	// sa.siginfo	si_pid;
-    static unsigned char current_char = 0;
-    static int bit_pos = 7;
-    static char message[50000];  // A buffer to store the incoming message
-    static int msg_index = 0;   // Index for the message buffer
-    (void)context;  // Unused
+	static unsigned char	current_char;
+	static int				bit_index;
 
-    // Print debug information for incoming signals
-    if (signum == SIGUSR1)
-    {
-        // Bit 0 (SIGUSR1)
-        // ft_printf("Received SIGUSR1 (bit 0)\n");
-        current_char &= ~(1 << bit_pos);  // Clear the bit at bit_pos
-		// store_char(current_char);
-    }
-    else if (signum == SIGUSR2)
-    {
-        // Bit 1 (SIGUSR2)
-        // ft_printf("Received SIGUSR2 (bit 1)\n");
-        current_char |= (1 << bit_pos);  // Set the bit at bit_pos
-    }
-
-    // Move to the next bit position
-    bit_pos--;
-
-    // If all bits of the character have been received
-    if (bit_pos < 0)
-    {
-        // Check for null character to mark end of the message
-        if (current_char == '\0')
-        {
-            // Print the full message and reset
-            // ft_printf("Message received: %s\n", message);
-            write(1, message, msg_index);  // Print the message
-            write(1, "\n", 1);  // New line after the message
-
-            // Reset the message buffer and index for the next message
-            msg_index = 0;
-            message[0] = '\0';
-        }
-        else
-        {
-            // Store the received character in the message buffer
-            message[msg_index] = current_char;
-            msg_index++;
-
-            // Ensure we don't go beyond the buffer size
-            if (msg_index >= 50000 - 1)
-            {
-                ft_printf("Message buffer full!\n");
-                msg_index = 0;  // Reset buffer index to avoid overflow
-            }
-        }
-
-        // Reset for the next character
-        bit_pos = 7;
-        current_char = 0;
-    }
-
-    // Send acknowledgment back to the client (SIGUSR1)
-    kill(info->si_pid, SIGUSR1);
+	(void)context;
+	current_char |= (signal == SIGUSR1);
+	bit_index++;
+	if (bit_index == 8)
+	{
+		if (current_char == END_TRANSMISSION)
+			ft_printf("\n");
+		else
+			ft_printf("%c", current_char);
+		bit_index = 0;
+		current_char = 0;
+	}
+	else
+		current_char <<= 1;
+	if (signal == SIGUSR1)
+		kill(info->si_pid, SIGUSR1);
+	else if (signal == SIGUSR2)
+		kill(info->si_pid, SIGUSR2);
 }
 
-
-int main(void)
+int	main(void)
 {
-	struct sigaction sa;
+	struct sigaction	sa;
+
+	sa.sa_sigaction = &handle_signal;
 	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = handler;
-	pid_t	pid_server = getpid();
 	sigemptyset(&sa.sa_mask);
-
-	// Register SIGUSR1 and SIGUSR2 signals for receiving data
-	if (sigaction(SIGUSR1, &sa, NULL) == -1 || sigaction(SIGUSR2, &sa, NULL) == -1)
-	{
-		perror("sigaction");
-		return 1;
-	}
-
-	// Print the server PID for the client to know where to send the signals
-	ft_printf("Server PID: %d\n", pid_server);
-
-	// The server will keep running to receive signals
+	ft_printf("%d\n", getpid());
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 	while (1)
-		pause();  // Wait for signals
+		pause();
+	return (0);
 }
